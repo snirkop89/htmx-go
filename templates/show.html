@@ -1,0 +1,15 @@
+{{define "title"}}Show Contact{{end}}
+
+{{define "main"}}
+<h1>{{.Contact.FirstName}} {{.Contact.LastName}}</h1>
+
+<div>
+    <div>Phone: {{.Contact.Phone}}</div>
+    <div>Email: {{.Contact.Email}}</div>
+</div>
+
+<p>
+    <a href="/contacts/{{.Contact.ID}}/edit">Edit</a>
+    <a href="/contacts">Back</a>
+</p>
+{{end}}
