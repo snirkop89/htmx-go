@@ -6,7 +6,8 @@
         <legend>Contact Values</legend>
         <p>
             <label for="email">Email</label>
-            <input type="email" name="email" id="email" placeholder="Email Address" value="{{if .Contact.Email}}{{.Contact.Email}}{{else}}{{end}}">
+            <input type="email" name="email" id="email"
+            placeholder="Email Address" value="{{if .Contact.Email}}{{.Contact.Email}}{{else}}{{end}}">
             <span class="error">{{ index .Errors "email"}}</span>
         </p>
         <p>

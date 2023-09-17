@@ -1,25 +1,72 @@
 {{define "base"}}
 <!doctype html>
 <html lang="">
+
 <head>
     <title>Contact App</title>
-    <link rel="stylesheet" href="https://the.missing.style/v0.2.0/missing.min.css">
-    <link rel="stylesheet" href="/static/site.css">
-    <script src="/static/js/htmx-1.8.0.js"></script>
-    <script src="/static/js/_hyperscript-0.9.7.js"></script>
-    <script src="/static/js/rsjs-menu.js" type="module"></script>
+    <link rel="stylesheet" href="https://the.missing.style">
+    <!-- <link rel="stylesheet" href="/static/site.css"> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
+        integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.5"
+        integrity="sha384-xcuj3WpfgjlKF+FXhSQFQ0ZNr39ln+hwjN3npfM9VBnUskLolQAcN80McRIVOPuO"
+        crossorigin="anonymous"></script>
+    <!-- <script src="/static/js/rsjs-menu.js" type="module"></script> -->
     <script defer src="https://unpkg.com/alpinejs@3/dist/cdn.min.js"></script>
+    <style>
+        tr.htmx-swapping {
+            opacity: 0;
+            transition: opacity 1s ease-out;
+        }
+
+        .progress {
+            height: 20px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);
+        }
+
+        .progress-bar {
+            float: left;
+            width: 0px;
+            height: 100px;
+            font-size: 12px;
+            line-height: 20px;
+            color: #fff;
+            text-align: center;
+            background-color: #337ab7;
+            box-shadow: inset, 0 -1px 0 rgba(0, 0, 0, .15);
+            transition: width .6s ease;
+        }
+    </style>
 </head>
+
 <body hx-boost="true">
-<main>
-    <header>
-        <h1>
-            <all-caps>contacts.app</all-caps>
-            <sub-title>A Demo Contacts Application</sub-title>
-        </h1>
-    </header>
-    {{ template "main" .}}
-</main>
+    <main>
+        <header>
+            <h1>
+                <all-caps>contacts.app</all-caps>
+                <sub-title>A Demo Contacts Application</sub-title>
+            </h1>
+        </header>
+        {{ template "main" .}}
+    </main>
 </body>
+
+<script>
+    function sweetConfirm(elt, config) {
+        swal(config)
+            .then((result) => {
+                console.log("result:", result)
+                if (result) {
+                    elt.dispatchEvent(new Event('confirmed'));
+                }
+            });
+    }
+</script>
 </html>
 {{end}}

@@ -1,36 +1,130 @@
 {{define "title"}}List Contacts{{end}}
 
 {{define "main"}}
+{{template "archive-ui" .}}
 <form action="/contacts" method="get" class="tool-bar">
     <label for="search">Search Term</label>
-    <input id="search" type="search" name="q" value="{{.Search}}" />
+    <input id="search" type="search" name="q" value="{{.Search}}" hx-get="/contacts"
+        hx-trigger="search, keyup delay:200ms changed" hx-target="tbody" hx-select="tbody tr" hx-push-url="true"
+        hx-indicator="#spinner" _="on keydown[altKey and code is 'KeyS'] from the window me.focus()" />
+    <img id="spinner" class="htmx-indicator" src="/static/img/spinning-circles.svg" alt="Request In Flight...">
     <input type="submit" value="Search" />
 </form>
 
-<table>
-    <thead>
-        <tr>
-            <th>First</th>
-            <th>Last</th>
-            <th>Phone</th>
-            <th>Email</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{ range .Contacts }}
-        <tr>
-            <td>{{.FirstName}}</td>
-            <td>{{.LastName}}</td>
-            <td>{{.Phone}}</td>
-            <td>{{.Email}}</td>
-            <td><a href="/contacts/{{.ID}}/edit">Edit</a>
-                <a href="/contacts/{{.ID}}">View</a>
+<form x-data="{ selected: [] }">
+    <template x-if="selected.length > 0">
+        <div class="box info tool-bar">
+            <slot x-text="selected.length"></slot>
+            contacts selected
+            <button hx-post="/contacts/delete" hx-target="body" hx-trigger="confirmed" type="button"
+                class="bad bg color border" @click="sweetConfirm($el, 
+            { 
+                title: 'Delete',
+                text: 'Delete there contacts?',
+                icon: 'warning',
+                buttons: {
+                    cancel: true,
+                    confirm: true,
+                }
+            })">Delete</button>
+            <hr aria-orientation="vertical">
+            <button tye="button" @click="selected = []">Cancel</button>
+        </div>
+    </template>
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>First</th>
+                <th>Last</th>
+                <th>Phone</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ template "rows" .}}
+            {{ if eq (len .Contacts) 10}}
+            <!-- Infinite scroll -->
+            <tr>
+                <td colspan="5" style="text-align: center">
+                    <span hx-target="closest tr" hx-trigger="revealed" hx-swap="outerHTML" hx-select="tbody > tr"
+                        hx-get="/contacts?page={{inc .Page}}">Loading More...</span>
+                </td>
+            </tr>
+            <!-- Load More button -->
+            <!-- <tr>
+            <td colspan="5" style="text-align: center">
+                <button hx-target="closest tr"
+                        hx-swap="outerHTML"
+                        hx-select="tbody > tr"
+                        hx-get="/contacts?page={{ inc .Page}}"
+                >
+                    Load More
+                </button>
             </td>
-        </tr>
+        </tr> -->
+            {{end}}
+        </tbody>
+    </table>
+    <button hx-post="/contacts/delete" hx-confirm="Are you sure you want to delete these contacts?"
+        hx-target="body">Delete
+        Selected Contacts</button>
+</form>
+
+<div>
+    <span style="float: right">
+        {{ if gt .Page 1 }}
+        <a href="/contacts?page={{.Page | dec }}">Previous</a>
         {{end}}
-    </tbody>
-</table>
+        {{ if eq (len .Contacts) 10}}
+        <a href="/contacts?page={{.Page | inc }}">Next</a>
+        {{end}}
+    </span>
+</div>
 <p>
     <a href="/contacts/new">Add Contact</a>
+    <span hx-get="/contacts/count" hx-trigger="revealed">
+        <img src="/static/img/spinning-circles.svg" id="spinner" class="htmx-indicator" style="width: 10px;"
+            alt="Fetching total count">
+    </span>
 </p>
+{{end}}
+
+{{define "rows"}}
+{{ range .Contacts }}
+<tr>
+    <td><input type="checkbox" name="selected_contacts_ids" value="{{.ID}}" x-model="selected"></td>
+    <td>{{.FirstName}}</td>
+    <td>{{.LastName}}</td>
+    <td>{{.Phone}}</td>
+    <td>{{.Email}}</td>
+    <td><a href="/contacts/{{.ID}}/edit">Edit</a>
+        <a href="/contacts/{{.ID}}">View</a>
+        <a href="#" hx-delete="/contacts/{{.ID}}" hx-swap="outerHTML swap:1s"
+            hx-confirm="Are you sure you want to delete this contact?" hx-target="closest tr">Delete</a>
+    </td>
+</tr>
+{{end}}
+{{end}}
+
+{{define "archive-ui"}}
+<div id="archive-ui" hx-target="this" hx-swap="outerHTML">
+    {{if eq .Archiver.Status "Waiting"}}
+    <button hx-post="/contacts/archive">
+        Download Contact Archive
+    </button>
+    {{else if (eq .Archiver.Status "Running")}}
+    <div hx-get="/contacts/archive" hx-trigger="load delay:500ms">
+        Creating Archive...
+        <div class="progress">
+            <div id="archive-progress" class="progress-bar" role="progrssbar"
+                aria-valuenow="{{multiply .Archiver.Progress 100}}" style="width:{{multiply .Archiver.Progress 100}}%">
+            </div>
+        </div>
+    </div>
+    {{else if (eq .Archiver.Status "Complete")}}
+    <a hx-boost="false" href="/contacts/archive/file">Archive Ready! Click here to download. &downarrow;</a>
+    <button hx-delete="/contacts/archive">Clear Download</button>
+    {{end}}
+</div>
 {{end}}
